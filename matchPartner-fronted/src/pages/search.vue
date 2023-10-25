@@ -5,10 +5,10 @@
     <van-divider content-position="left">文字</van-divider>
     <van-row gutter="16" style="padding: 0 16px;">
         <van-col v-for="tag in activeIds" style="padding: 5px;">
-    <van-tag :show="show" closeable size="medium" type="primary" @close="closeTag(tag)">
-        {{ tag }}
-    </van-tag></van-col>
-</van-row>
+            <van-tag :show="show" closeable size="medium" type="primary" @close="closeTag(tag)">
+                {{ tag }}
+            </van-tag></van-col>
+    </van-row>
     <van-divider content-position="left">文字</van-divider>
     <van-tree-select v-model:active-id="activeIds" v-model:main-active-index="activeIndex" height="100vw"
         :items="tagList" />
@@ -50,21 +50,21 @@ const originalTagList = [
 
 
 const tagList = ref(originalTagList);
-const onSearch = (val: any) => { 
+const onSearch = () => {
     tagList.value = originalTagList.map(parentTag => {
         const tempchildren = [...parentTag.children];
-        const tempParentTag = {...parentTag};
+        const tempParentTag = { ...parentTag };
         tempParentTag.children = tempchildren.filter(item => item.text.includes(searchText.value));
         return tempParentTag;
     });
 };
-const closeTag = (tag : string) => {
+const closeTag = (tag: string) => {
     activeIds.value = activeIds.value.filter(activeId => {
         return activeId != tag;
-    }); 
+    });
 }
 watchEffect(() => {
-    onSearch(searchText);
+    onSearch();
 });
 </script>
 

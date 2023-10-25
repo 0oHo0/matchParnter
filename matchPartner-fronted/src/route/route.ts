@@ -2,6 +2,7 @@ import Search from '../pages/search.vue'
 import Home from '../pages/index.vue'
 import Team from '../pages/team.vue'
 import User from '../pages/user.vue'
+import UserEdit from '../pages/userEdit.vue'
 import * as VueRouter from 'vue-router'
 
 const routes = [
@@ -9,6 +10,7 @@ const routes = [
     { path: '/team', component: Team },
     { path: '/search', component: Search },
     { path: '/user', component: User },
+    { path: '/user/edit', component: UserEdit },
 ]
 
 const router = VueRouter.createRouter({

@@ -1,6 +1,6 @@
 <template>
     <div>
-        
+        队伍
     </div>
 </template>
 
@@ -8,6 +8,4 @@
 
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
