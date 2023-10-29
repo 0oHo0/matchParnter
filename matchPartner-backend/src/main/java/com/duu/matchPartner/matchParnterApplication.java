@@ -9,10 +9,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 @MapperScan("com.duu.matchPartner.mapper")
-public class marchParnterApplication {
+public class matchParnterApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(marchParnterApplication.class, args);
+        SpringApplication.run(matchParnterApplication.class, args);
     }
 
 }

@@ -10,12 +10,16 @@
             </van-tag></van-col>
     </van-row>
     <van-divider content-position="left">文字</van-divider>
-    <van-tree-select v-model:active-id="activeIds" v-model:main-active-index="activeIndex" height="100vw"
-        :items="tagList" />
+    <van-tree-select v-model:active-id="activeIds" v-model:main-active-index="activeIndex" height="90vw" :items="tagList" />
+    <van-button icon="https://fastly.jsdelivr.net/npm/@vant/assets/user-active.png" type="primary" @click="search">
+        按钮
+    </van-button>
 </template>
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
+import router from '../route/route';
+import myaxios from '../axios/myaxios';
 
 const searchText = ref('');
 const onCancel = () => {
@@ -66,6 +70,15 @@ const closeTag = (tag: string) => {
 watchEffect(() => {
     onSearch();
 });
+const search = async() => {
+    myaxios.
+    router.push({
+        path: "/searchRes",
+        query: {
+            tags : activeIds.value
+        }
+    })
+}
 </script>
 
 <style scoped></style>

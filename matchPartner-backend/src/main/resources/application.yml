@@ -11,10 +11,19 @@ spring:
   # session 失效时间
   session:
     timeout: 86400
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+  # 默认 dev 环境
+  profiles:
+    active: dev
 server:
   port: 8100
   servlet:
     context-path: /api
+  session:
+    cookie:
+      domain: localhost
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false

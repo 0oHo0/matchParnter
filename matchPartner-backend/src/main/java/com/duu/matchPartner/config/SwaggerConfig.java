@@ -10,7 +10,6 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 
 /**
@@ -30,12 +29,11 @@ public class SwaggerConfig {
                 .apiInfo(apiInfo())
                 .select()
                 // 这里一定要标注你控制器的位置
-                .apis(RequestHandlerSelectors.basePackage("com.yupi.yupao.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.duu.matchPartner.controller"))
                 .paths(PathSelectors.any())
                 .build();
     }
 
-    // [加入编程导航](https://t.zsxq.com/0emozsIJh) 深耕编程提升【两年半】、国内净值【最高】的编程社群、用心服务【20000+】求学者、帮你自学编程【不走弯路】
 
     /**
      * api 信息
@@ -43,10 +41,10 @@ public class SwaggerConfig {
      */
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("鱼皮用户中心")
-                .description("鱼皮用户中心接口文档")
-                .termsOfServiceUrl("https://github.com/liyupi")
-                .contact(new Contact("yupi","https://github.com/liyupi","xxx@qq.com"))
+                .title("匹配系统")
+                .description("匹配系统接口文档")
+                .termsOfServiceUrl("https://github.com/0oHo0")
+                .contact(new Contact("duu","https://github.com/0oHo0","xxx@qq.com"))
                 .version("1.0")
                 .build();
     }

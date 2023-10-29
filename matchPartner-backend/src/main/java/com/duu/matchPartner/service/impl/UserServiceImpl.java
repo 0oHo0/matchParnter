@@ -3,6 +3,7 @@ package com.duu.matchPartner.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.duu.matchPartner.common.ErrorCode;
+import com.duu.matchPartner.contant.UserConstant;
 import com.duu.matchPartner.exception.BusinessException;
 import com.duu.matchPartner.mapper.UserMapper;
 import com.duu.matchPartner.model.domain.User;
@@ -38,6 +39,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     private static final String SALT = "duu";
 
+    /**
+     * 判断管理员
+     * @param loginUser
+     * @return
+     */
+
+    @Override
+    public boolean isAdmin(User loginUser) {
+        return loginUser != null && loginUser.getUserRole() == UserConstant.ADMIN_ROLE;
+    }
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        // 仅管理员可查询
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
+        return user != null && user.getUserRole() == UserConstant.ADMIN_ROLE;
+    }
     /**
      * 用户注册
      *
@@ -195,6 +213,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> usersList = userMapper.selectList(queryWrapper);
         usersList.stream().map(this::getSafetyUser).collect(Collectors.toList());
         return usersList;
+    }
+
+    @Override
+    public int updataUser(User user,User loginUser) {
+        Long userId = user.getId();
+        if (userId < 0)
+            throw  new BusinessException(ErrorCode.PARAMS_ERROR);
+        if (!isAdmin(loginUser) && userId != loginUser.getId()) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+
+        return userMapper.updateById(user);
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if(request== null)
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        return  (User) userObj;
+    }
+
+    @Override
+    public List<User> getUserByTags(List<String> tags) {
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        for (String tag:tags) {
+//            queryWrapper = queryWrapper.like("tags", tag);
+//        }
+
+        return null;
     }
 }
 

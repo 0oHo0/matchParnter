@@ -24,6 +24,19 @@ public interface UserService extends IService<User> {
     long userRegister(String userAccount, String userPassword, String checkPassword, String userCode);
 
     /**
+     * 判断是否是管理员
+     * @param loginUser
+     * @return
+     */
+    public boolean isAdmin(User loginUser);
+
+    /**
+     * 判断是否是管理员
+     * @param request
+     * @return
+     */
+    boolean isAdmin(HttpServletRequest request);
+    /**
      * 用户登录
      *
      * @param userAccount  用户账户
@@ -52,4 +65,10 @@ public interface UserService extends IService<User> {
 
 
     List<User> searchUserByTags(List<String> tags);
+
+    int updataUser(User user,User loginUser);
+
+    User getLoginUser(HttpServletRequest request);
+
+    List<User> getUserByTags(List<String> tags);
 }

@@ -3,6 +3,8 @@ import Home from '../pages/index.vue'
 import Team from '../pages/team.vue'
 import User from '../pages/user.vue'
 import UserEdit from '../pages/userEdit.vue'
+import searchRes from '../pages/searchRes.vue'
+import login from '../pages/login.vue'
 import * as VueRouter from 'vue-router'
 
 const routes = [
@@ -11,6 +13,8 @@ const routes = [
     { path: '/search', component: Search },
     { path: '/user', component: User },
     { path: '/user/edit', component: UserEdit },
+    { path: '/searchRes', component: searchRes },
+    { path: '/user/login', component: login },
 ]
 
 const router = VueRouter.createRouter({
