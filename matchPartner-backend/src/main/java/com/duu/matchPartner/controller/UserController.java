@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Type;
@@ -155,6 +156,8 @@ public class UserController {
 
     @GetMapping("/tag")
     public BaseResponse<List<User>> searchUserByTags(@RequestParam List<String> tags) {
+        if(CollectionUtils.isEmpty(tags))
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         List<User> userByTags = userService.searchUserByTags(tags);
         return ResultUtils.success(userByTags);
     }
