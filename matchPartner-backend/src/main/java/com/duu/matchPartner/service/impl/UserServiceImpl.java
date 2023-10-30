@@ -8,6 +8,8 @@ import com.duu.matchPartner.exception.BusinessException;
 import com.duu.matchPartner.mapper.UserMapper;
 import com.duu.matchPartner.model.domain.User;
 import com.duu.matchPartner.service.UserService;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -204,9 +207,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public List<User> searchUserByTags(List<String> tags) {
-       if (CollectionUtils.isEmpty(tags))
-           throw new BusinessException(ErrorCode.PARAMS_ERROR);
-       QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         for (String tag:tags) {
             queryWrapper = queryWrapper.like("tags", tag);
         }
@@ -236,13 +237,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public List<User> getUserByTags(List<String> tags) {
-//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//        for (String tag:tags) {
-//            queryWrapper = queryWrapper.like("tags", tag);
-//        }
-
-        return null;
+    public List<User> searchUsers() {
+        QueryWrapper queryWrapper = new QueryWrapper();
+        return userMapper.selectList(queryWrapper);
     }
+
+
 }
 

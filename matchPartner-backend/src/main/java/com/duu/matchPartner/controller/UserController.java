@@ -9,24 +9,24 @@ import com.duu.matchPartner.model.domain.User;
 import com.duu.matchPartner.model.domain.request.UserLoginRequest;
 import com.duu.matchPartner.model.domain.request.UserRegisterRequest;
 import com.duu.matchPartner.service.UserService;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Type;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.duu.matchPartner.contant.UserConstant.ADMIN_ROLE;
 import static com.duu.matchPartner.contant.UserConstant.USER_LOGIN_STATE;
 
-/**
- * 用户接口
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
- */
+
 @RestController
 @RequestMapping("/user")
 @CrossOrigin(origins = {"http://localhost:5173"}, allowCredentials = "true")
@@ -115,7 +115,6 @@ public class UserController {
         return ResultUtils.success(safetyUser);
     }
 
-    // https://yupi.icu/
 
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
@@ -144,12 +143,7 @@ public class UserController {
     }
 
 
-    /**
-     * 是否为管理员
-     *
-     * @param request
-     * @return
-     */
+
 
     @PostMapping("/update")
     public BaseResponse<Integer> updataUser(@RequestBody User user, HttpServletRequest request ) {
@@ -158,9 +152,16 @@ public class UserController {
         return ResultUtils.success(res);
     }
 
-    @PostMapping("/tag")
-    public BaseResponse<List<User>> getUserByTag(@RequestBody List<String> tags) {
-        List<User> userByTags = userService.getUserByTags(tags);
+
+    @GetMapping("/tag")
+    public BaseResponse<List<User>> searchUserByTags(@RequestParam List<String> tags) {
+        List<User> userByTags = userService.searchUserByTags(tags);
+        return ResultUtils.success(userByTags);
+    }
+
+    @GetMapping("/home")
+    public BaseResponse<List<User>> searchUser() {
+        List<User> userByTags = userService.searchUsers();
         return ResultUtils.success(userByTags);
     }
 }

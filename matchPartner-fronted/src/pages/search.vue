@@ -71,7 +71,6 @@ watchEffect(() => {
     onSearch();
 });
 const search = async() => {
-    myaxios.
     router.push({
         path: "/searchRes",
         query: {

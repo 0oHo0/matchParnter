@@ -18,6 +18,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRoute } from 'vue-router';
+import myaxios from '../axios/myaxios';
+import qs from 'qs';
+import { onMounted } from 'vue';
+const route = useRoute();
+const userList = ref({});
 const userResult = {
     id: 1,
     username: "duu",
@@ -34,7 +40,25 @@ const userResult = {
     createTime: new Date(),
 };
 
-const userList = ref({ userResult });
+onMounted(async() => {
+  const res = await myaxios.get('/user/tag',{
+    params: {
+      tags: route.query.tags
+    },
+  paramsSerializer: params => {
+    return qs.stringify(params, {indices: false})
+    }
+  })
+  if (res.data) {
+    res.data.forEach(user => {
+      if (user.tags) {
+        user.tags = JSON.parse(user.tags);
+      }
+    })
+    userList.value = res.data;
+  }
+});
+
 </script>
 
 <style scoped></style>
