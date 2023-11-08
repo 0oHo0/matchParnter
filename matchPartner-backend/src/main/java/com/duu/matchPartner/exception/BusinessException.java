@@ -41,7 +41,6 @@ public class BusinessException extends RuntimeException {
         return code;
     }
 
-
     public String getDescription() {
         return description;
     }

@@ -1,6 +1,7 @@
 package com.duu.matchPartner.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.duu.matchPartner.common.ErrorCode;
 import com.duu.matchPartner.contant.UserConstant;
@@ -12,6 +13,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -36,7 +39,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Resource
     private UserMapper userMapper;
 
-
+    @Resource
+    private RedisTemplate redisTemplate;
     /**
      * 盐值，混淆密码
      */
@@ -237,9 +241,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public List<User> searchUsers() {
+    public Page<User> searchUsers(Long PageNum,Long PageSize,User loginUser) {
+        Long id = loginUser.getId();
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        String key = String.format("match-duu-recommend:%s",id);
+        Page<User> userPage = (Page<User>)valueOperations.get(key);
+        if(userPage!=null)
+            return  userPage;
         QueryWrapper queryWrapper = new QueryWrapper();
-        return userMapper.selectList(queryWrapper);
+        Page Page = new Page<>(PageNum,PageSize);
+        userPage = userMapper.selectPage(Page, queryWrapper);
+        try {
+            valueOperations.set(key,userPage);
+        }catch (Exception e){
+            log.error("redis set error");
+        }
+        return userPage;
     }
 
 

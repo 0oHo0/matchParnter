@@ -7,12 +7,11 @@ import java.io.Serializable;
 /**
  * 通用返回类
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @Data
 public class BaseResponse<T> implements Serializable {
 
+    private static final long serialVersionUID = 2869237969003215884L;
     /**
      * 状态码
      */
@@ -33,7 +32,6 @@ public class BaseResponse<T> implements Serializable {
      */
     private String description;
 
-    // https://t.zsxq.com/0emozsIJh
     public BaseResponse(int code, T data, String message, String description) {
         this.code = code;
         this.data = data;

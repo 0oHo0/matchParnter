@@ -1,10 +1,15 @@
 package com.duu.matchPartner.service;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.duu.matchPartner.mapper.UserMapper;
 import com.duu.matchPartner.model.domain.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -19,7 +24,10 @@ public class UserServiceTest {
 
     @Resource
     private UserService userService;
-
+    @Resource
+    UserMapper userMapper;
+    @Resource
+    RedisTemplate redisTemplate;
     /**
      * 测试添加用户
      */
@@ -116,5 +124,22 @@ public class UserServiceTest {
 
         System.out.println(userList);
         return;
+    }
+    @Test
+    void redisTest(){
+        Long id = 1L;
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        String key = String.format("match-duu-recommend:%s",id);
+        Page<User> userPage = (Page<User>)valueOperations.get(key);
+        if(userPage!=null)
+            return  ;
+        QueryWrapper queryWrapper = new QueryWrapper();
+        Page Page = new Page<>(1,10);
+        userPage = userMapper.selectPage(Page, queryWrapper);
+        try {
+            valueOperations.set(key,userPage);
+        }catch (Exception e){
+            System.out.println("redis set error");
+        }
     }
 }

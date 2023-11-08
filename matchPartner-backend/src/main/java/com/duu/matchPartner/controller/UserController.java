@@ -1,30 +1,25 @@
 package com.duu.matchPartner.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.duu.matchPartner.common.BaseResponse;
 import com.duu.matchPartner.common.ErrorCode;
 import com.duu.matchPartner.common.ResultUtils;
 import com.duu.matchPartner.exception.BusinessException;
 import com.duu.matchPartner.model.domain.User;
-import com.duu.matchPartner.model.domain.request.UserLoginRequest;
-import com.duu.matchPartner.model.domain.request.UserRegisterRequest;
+import com.duu.matchPartner.model.request.UserLoginRequest;
+import com.duu.matchPartner.model.request.UserRegisterRequest;
 import com.duu.matchPartner.service.UserService;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Type;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.duu.matchPartner.contant.UserConstant.ADMIN_ROLE;
 import static com.duu.matchPartner.contant.UserConstant.USER_LOGIN_STATE;
 
 
@@ -144,8 +139,6 @@ public class UserController {
     }
 
 
-
-
     @PostMapping("/update")
     public BaseResponse<Integer> updataUser(@RequestBody User user, HttpServletRequest request ) {
         User loginUser = userService.getLoginUser(request);
@@ -163,8 +156,9 @@ public class UserController {
     }
 
     @GetMapping("/home")
-    public BaseResponse<List<User>> searchUser() {
-        List<User> userByTags = userService.searchUsers();
+    public BaseResponse<Page<User>> searchUser(Long PageNum,Long PageSize,HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        Page<User> userByTags = userService.searchUsers(PageNum, PageSize,loginUser);
         return ResultUtils.success(userByTags);
     }
 }

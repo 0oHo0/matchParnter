@@ -15,8 +15,13 @@ import java.security.NoSuchAlgorithmException;
 @SpringBootTest
 class marchParnterApplicationTests {
 
-    // https://yupi.icu/
-
+    @Test
+    void test() {
+        Long id = 1L;
+        String ids = "1";
+        System.out.println(id.toString());
+        System.out.println(ids);
+    }
     @Test
     void testDigest() throws NoSuchAlgorithmException {
         String newPassword = DigestUtils.md5DigestAsHex(("abcd" + "mypassword").getBytes());

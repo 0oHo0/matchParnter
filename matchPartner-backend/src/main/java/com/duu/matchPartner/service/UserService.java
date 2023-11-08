@@ -1,5 +1,6 @@
 package com.duu.matchPartner.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.duu.matchPartner.model.domain.User;
 
@@ -70,5 +71,5 @@ public interface UserService extends IService<User> {
 
     User getLoginUser(HttpServletRequest request);
 
-    List<User> searchUsers();
+    Page<User> searchUsers(Long PageNum, Long PageSize, User loginUser);
 }
