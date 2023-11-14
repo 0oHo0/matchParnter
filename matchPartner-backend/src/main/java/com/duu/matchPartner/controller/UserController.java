@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +27,7 @@ import static com.duu.matchPartner.contant.UserConstant.USER_LOGIN_STATE;
 
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = {"http://localhost:5173"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000"}, allowCredentials = "true")
 @Slf4j
 public class UserController {
 
@@ -156,9 +158,16 @@ public class UserController {
     }
 
     @GetMapping("/home")
-    public BaseResponse<Page<User>> searchUser(Long PageNum,Long PageSize,HttpServletRequest request) {
+    public BaseResponse<Page<User>> searchUser(Long pageNum,Long pageSize,HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        Page<User> userByTags = userService.searchUsers(PageNum, PageSize,loginUser);
+        Page<User> userByTags = userService.searchUsers(pageNum, pageSize,loginUser);
         return ResultUtils.success(userByTags);
+    }
+
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchUser(long num,HttpServletRequest request){
+        if (num<0||num>=20)
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        return ResultUtils.success(userService.matchUser(num,request));
     }
 }

@@ -19,7 +19,7 @@ public interface TeamService extends IService<Team> {
 
     Long addteam(Team team, HttpServletRequest request);
 
-    List<TeamUserVO> getTeamList(TeamQuery teamQuery, HttpServletRequest request);
+    List<TeamUserVO> getTeamList(TeamQuery teamQuery, Boolean admin);
 
     boolean updateTeam(Team team, HttpServletRequest request);
 

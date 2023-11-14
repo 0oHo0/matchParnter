@@ -88,7 +88,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "超时时间 > 当前时间");
         }
 //        g. 校验用户最多创建 5 个队伍
-        Long userId = team.getUserId();
+        Long userId = loginUser.getId();
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userId", userId);
         long hasTeamNum = this.count(queryWrapper);
@@ -115,8 +115,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     @Override
-    public List<TeamUserVO> getTeamList(TeamQuery teamQuery, HttpServletRequest request) {
-        boolean admin = userService.isAdmin(request);
+    public List<TeamUserVO> getTeamList(TeamQuery teamQuery, Boolean admin) {
         if (teamQuery == null)
             return null;
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
@@ -124,7 +123,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         String name = teamQuery.getName();
         if (StringUtils.isNotBlank(name))
             queryWrapper.like("name", name);
-
         Long id = teamQuery.getId();
         if (id != null && id > 0) {
             queryWrapper.eq("id", id);
@@ -157,19 +155,25 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         if (!admin && TeamStatusEnum.PRIVATE.equals(teamStatusEnum)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        queryWrapper.eq("status", teamStatusEnum);
+        queryWrapper.eq("status", teamStatusEnum.getValue());
         //        2. 不展示已过期的队伍（根据过期时间筛选）
         queryWrapper.and(qw -> qw.gt("expireTime", new Date()).or().isNull("expireTime"));
         List<Team> teamList = this.list(queryWrapper);
         if (CollectionUtils.isEmpty(teamList))
             return new ArrayList<>();
         List<TeamUserVO> teamUserVOList = new ArrayList<>();
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
         for (Team team : teamList) {
             userId = team.getUserId();
             if (userId == null)
                 continue;
             User user = userService.getById(userId);
             TeamUserVO teamUserVO = new TeamUserVO();
+            BeanUtils.copyProperties(team,teamUserVO);
+            userTeamQueryWrapper.eq("teamId",team.getId());
+            int count = (int)userTeamService.count(userTeamQueryWrapper);
+            teamUserVO.setHasJoinNum(count);
+            userTeamQueryWrapper.clear();
             if (user != null) {
                 UserVO userVO = new UserVO();
                 BeanUtils.copyProperties(user, userVO);
@@ -194,8 +198,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         //  3. 只有管理员或者队伍的创建者可以修改
         boolean admin = userService.isAdmin(request);
         User loginUser = userService.getLoginUser(request);
-        Long userId = team.getUserId();
-        if (!admin || teamById.getUserId() != loginUser.getId())
+        if (!admin && !teamById.getUserId().equals(loginUser.getId()))
             throw new BusinessException(ErrorCode.NO_AUTH);
 //        4. 如果用户传入的新值和老值一致，就不用 update 了（可自行实现，降低数据库使用次数）
         if (team.equals(teamById)) {
@@ -287,28 +290,29 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         queryWrapper.eq("teamId", teamId);
         long count1 = userTeamService.count(queryWrapper);
         if (count1 == 1) {
-            boolean remove = this.removeById(teamId);
+            boolean remove = this.removeById(team);
             if (!remove)
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "退出失败");
         } else {
             //         b. 还有其他人
 //              ⅰ. 如果是队长退出队伍，权限转移给第二早加入的用户 —— 先来后到只用取 id 最小的 2 条数据
-            if (loginUserId == team.getUserId()) {
+            if (loginUserId.equals(team.getUserId())) {
                 // userTeamService.remove(queryWrapper);
                 queryWrapper.last("order by id asc limit 2");
                 List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
                 if (CollectionUtils.isEmpty(userTeamList) || userTeamList.size() <= 1)
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR);
                 UserTeam nextUserTeam = userTeamList.get(1);
+                Team newTeam = new Team();
                 Long userId = nextUserTeam.getUserId();
-                team.setUserId(userId);
-                boolean update = this.updateById(team);
+                newTeam.setUserId(userId);
+                newTeam.setId(teamId);
+                boolean update = this.updateById(newTeam);
                 if (!update)
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更换队长失败");
-
             }
         }
-        return userTeamService.remove(queryWrapper);
+        return userTeamService.remove(userTeamQueryWrapper);
     }
 
     @Override

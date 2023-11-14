@@ -9,8 +9,11 @@ import com.duu.matchPartner.exception.BusinessException;
 import com.duu.matchPartner.mapper.UserMapper;
 import com.duu.matchPartner.model.domain.User;
 import com.duu.matchPartner.service.UserService;
+import com.duu.matchPartner.utils.AlgorithmUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.swagger.models.auth.In;
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,7 +24,8 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -191,6 +195,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setPhone(originUser.getPhone());
         safetyUser.setEmail(originUser.getEmail());
         safetyUser.setUserCode(originUser.getUserCode());
+        safetyUser.setTags(originUser.getTags());
         safetyUser.setUserRole(originUser.getUserRole());
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setCreateTime(originUser.getCreateTime());
@@ -248,17 +253,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         Page<User> userPage = (Page<User>)valueOperations.get(key);
         if(userPage!=null)
             return  userPage;
-        QueryWrapper queryWrapper = new QueryWrapper();
-        Page Page = new Page<>(PageNum,PageSize);
-        userPage = userMapper.selectPage(Page, queryWrapper);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.last("and id != "+id.toString());
+        Page<User> Page = new Page<>(PageNum,PageSize);
+        userPage = this.page(Page,queryWrapper);
         try {
-            valueOperations.set(key,userPage);
+            valueOperations.set(key,userPage,60, TimeUnit.MINUTES);
         }catch (Exception e){
             log.error("redis set error");
         }
         return userPage;
     }
 
-
+    @Override
+    public List<User> matchUser(long num, HttpServletRequest request) {
+        User loginUser = this.getLoginUser(request);
+        Gson gson = new Gson();
+        List<String> loginUserTagList = gson.fromJson(loginUser.getTags(), new TypeToken<List<String>>() {
+        }.getType());
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id","tags");
+        queryWrapper.isNotNull("tags");
+        List<User> userList = this.list(queryWrapper);
+        List<Pair<User,Integer>> list = new ArrayList<>();
+        userList.forEach(user -> {
+            List<String> tagList = gson.fromJson(user.getTags(), new TypeToken<List<String>>() {
+            }.getType());
+            int minDistance = AlgorithmUtils.minDistance(loginUserTagList, tagList);
+            if(!user.getId().equals(loginUser.getId()))
+                list.add(new Pair<>(user,minDistance));
+        });
+        List<Long> userIdList =
+                list.stream().sorted((a, b) -> a.getValue() - b.getValue()).limit(num).collect(Collectors.toList())
+                .stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+        QueryWrapper<User> finalQueryWrapper = new QueryWrapper<>();
+        finalQueryWrapper.in("id",userIdList);
+        Map<Long, List<User>> listMap = this.list(finalQueryWrapper)
+                .stream()
+                .map(this::getSafetyUser)
+                .collect(Collectors.groupingBy(User::getId));
+        List<User> resList = new ArrayList<>();
+        userIdList.forEach(userId -> resList.add(listMap.get(userId).get(0)));
+        return resList;
+    }
 }
-
