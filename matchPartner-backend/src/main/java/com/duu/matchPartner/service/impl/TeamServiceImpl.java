@@ -172,6 +172,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             BeanUtils.copyProperties(team,teamUserVO);
             userTeamQueryWrapper.eq("teamId",team.getId());
             int count = (int)userTeamService.count(userTeamQueryWrapper);
+            //设置已加入数
             teamUserVO.setHasJoinNum(count);
             userTeamQueryWrapper.clear();
             if (user != null) {
