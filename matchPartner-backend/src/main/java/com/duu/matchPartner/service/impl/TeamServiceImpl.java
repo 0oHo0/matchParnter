@@ -341,6 +341,14 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 //        5. 删除队伍
         return this.removeById(id);
     }
+
+    @Override
+    public List<User> catTeam(Long teamId) {
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("teamId",teamId);
+        List<Long> userIdList = userTeamService.list(queryWrapper).stream().map(UserTeam::getUserId).collect(Collectors.toList());
+        return userService.listByIds(userIdList);
+    }
 }
 
 

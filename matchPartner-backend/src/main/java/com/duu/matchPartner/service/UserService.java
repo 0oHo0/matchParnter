@@ -3,6 +3,7 @@ package com.duu.matchPartner.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.duu.matchPartner.model.domain.User;
+import com.duu.matchPartner.model.request.UserLoginRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -22,7 +23,7 @@ public interface UserService extends IService<User> {
      * @param userCode    用户编号
      * @return 新用户 id
      */
-    long userRegister(String userAccount, String userPassword, String checkPassword, String userCode);
+    long userRegister(String userAccount, String userPassword, String checkPassword);
 
     /**
      * 判断是否是管理员
@@ -67,11 +68,15 @@ public interface UserService extends IService<User> {
 
     List<User> searchUserByTags(List<String> tags);
 
-    int updataUser(User user,User loginUser);
+    int updateUser(User user,User loginUser);
 
     User getLoginUser(HttpServletRequest request);
 
     Page<User> searchUsers(Long PageNum, Long PageSize, User loginUser);
 
     List<User> matchUser(long num, HttpServletRequest request);
+
+    User userLoginByPhone(UserLoginRequest userLoginRequest, HttpServletRequest request);
+
+    Boolean sendMsg(String phoneNumber);
 }

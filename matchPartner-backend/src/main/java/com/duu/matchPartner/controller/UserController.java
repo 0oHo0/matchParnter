@@ -1,5 +1,6 @@
 package com.duu.matchPartner.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.duu.matchPartner.common.BaseResponse;
@@ -12,14 +13,18 @@ import com.duu.matchPartner.model.request.UserRegisterRequest;
 import com.duu.matchPartner.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.duu.matchPartner.contant.UserConstant.USER_LOGIN_STATE;
@@ -49,11 +54,11 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        String planetCode = userRegisterRequest.getPlanetCode();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, planetCode)) {
+
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             return null;
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
     }
 
@@ -142,9 +147,9 @@ public class UserController {
 
 
     @PostMapping("/update")
-    public BaseResponse<Integer> updataUser(@RequestBody User user, HttpServletRequest request ) {
+    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request ) {
         User loginUser = userService.getLoginUser(request);
-        int res = userService.updataUser(user,loginUser);
+        int res = userService.updateUser(user,loginUser);
         return ResultUtils.success(res);
     }
 
@@ -169,5 +174,27 @@ public class UserController {
         if (num<0||num>=20)
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         return ResultUtils.success(userService.matchUser(num,request));
+    }
+
+    @PostMapping("/login/phone")
+    public BaseResponse<User> login(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
+        if (userLoginRequest ==null)
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        User user = userService.userLoginByPhone(userLoginRequest, request);
+        if (user == null)
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"登陆失败");
+        return ResultUtils.success(user);
+    }
+    @GetMapping("/sendMsg")
+    public BaseResponse<Boolean> sendMsg(String phoneNumber){
+        if(StringUtils.isEmpty(phoneNumber)){
+            //生成随机的4位验证码
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Boolean sendMsg = userService.sendMsg(phoneNumber);
+        if (!sendMsg)
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+
+        return ResultUtils.success(sendMsg);
     }
 }

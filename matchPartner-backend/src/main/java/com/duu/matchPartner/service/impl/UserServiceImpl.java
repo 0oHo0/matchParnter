@@ -1,15 +1,20 @@
 package com.duu.matchPartner.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.duu.matchPartner.common.BaseResponse;
 import com.duu.matchPartner.common.ErrorCode;
 import com.duu.matchPartner.contant.UserConstant;
 import com.duu.matchPartner.exception.BusinessException;
 import com.duu.matchPartner.mapper.UserMapper;
 import com.duu.matchPartner.model.domain.User;
+import com.duu.matchPartner.model.request.UserLoginRequest;
 import com.duu.matchPartner.service.UserService;
 import com.duu.matchPartner.utils.AlgorithmUtils;
+import com.duu.matchPartner.utils.SMSUtils;
+import com.duu.matchPartner.utils.ValidateCodeUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.swagger.models.auth.In;
@@ -21,6 +26,8 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Type;
@@ -73,13 +80,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param userAccount   用户账户
      * @param userPassword  用户密码
      * @param checkPassword 校验密码
-     * @param userCode    星球编号
      * @return 新用户 id
      */
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword, String userCode) {
+    public long userRegister(String userAccount, String userPassword, String checkPassword) {
         // 1. 校验
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, userCode)) {
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         if (userAccount.length() < 4) {
@@ -88,9 +94,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (userPassword.length() < 8 || checkPassword.length() < 8) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
         }
-        if (userCode.length() > 5) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "星球编号过长");
-        }
+
         // 账户不能包含特殊字符
         String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
@@ -108,20 +112,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (count > 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
         }
-        // 星球编号不能重复
-        queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userCode", userCode);
-        count = userMapper.selectCount(queryWrapper);
-        if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "编号重复");
-        }
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         // 3. 插入数据
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
-        user.setUserCode(userCode);
         boolean saveResult = this.save(user);
         if (!saveResult) {
             return -1;
@@ -226,11 +222,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public int updataUser(User user,User loginUser) {
+    public int updateUser(User user,User loginUser) {
         Long userId = user.getId();
         if (userId < 0)
             throw  new BusinessException(ErrorCode.PARAMS_ERROR);
-        if (!isAdmin(loginUser) && userId != loginUser.getId()) {
+        if (!isAdmin(loginUser) && !userId.equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
 
@@ -295,5 +291,66 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> resList = new ArrayList<>();
         userIdList.forEach(userId -> resList.add(listMap.get(userId).get(0)));
         return resList;
+    }
+
+    @Override
+    public User userLoginByPhone(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+
+            //获取手机号
+            String phone = userLoginRequest.getPhoneNumber();
+
+            //获取验证码
+            String code = userLoginRequest.getCode();
+
+            String codeKey = String.format("duu-matchPartner-userLoginByPhone:%s", phone);
+        //从Session中获取保存的验证码
+            // Object codeInSession = session.getAttribute(phone);
+            //从缓存中获取验证码
+            Object codeInRedis =  redisTemplate.opsForValue().get(codeKey);
+            //进行验证码的比对（页面提交的验证码和Session中保存的验证码比对）
+            if(codeInRedis != null && codeInRedis.equals(code)){
+                //如果能够比对成功，说明登录成功
+
+                LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(User::getPhone,phone);
+
+                User user = this.getOne(queryWrapper);
+                if(user == null){
+                    //判断当前手机号对应的用户是否为新用户，如果是新用户就自动完成注册
+                    user = new User();
+                    user.setPhone(phone);
+                    this.save(user);
+                }
+                // 3. 用户脱敏
+                User safetyUser = getSafetyUser(user);
+                // 4. 记录用户的登录态
+                request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+                try {
+                    redisTemplate.delete(codeKey);
+                }catch (Exception e){
+                    log.error("redis delete error");
+                }
+                return user;
+            }
+            return null;
+    }
+
+    @Override
+    public Boolean sendMsg(String phoneNumber) {
+
+        String code = ValidateCodeUtils.generateValidateCode(4).toString();
+        log.info("code={}",code);
+        //调用腾讯云提供的短信服务API完成发送短信
+        SMSUtils.sendSms(phoneNumber,code);
+
+        //需要将生成的验证码保存到Redis
+        String codeKey = String.format("duu-matchPartner-userLoginByPhone:%s", phoneNumber);
+        try {
+            redisTemplate.opsForValue().set(codeKey,code,5, TimeUnit.MINUTES);
+        }catch (Exception e){
+            log.error("redis set error");
+            return false;
+        }
+        return true;
     }
 }

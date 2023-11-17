@@ -27,6 +27,10 @@
         </div>
       </template>
       <template #footer>
+        <van-button size="small" type="primary"  plain
+                    @click="catTeam(team)">
+          查看队伍
+        </van-button>
         <van-button size="small" type="primary" v-if="team.createUser?.id !== currentUser?.id && !team.hasJoinNum" plain
                     @click="preJoinTeam(team)">
           加入队伍
@@ -88,7 +92,18 @@ const preJoinTeam = (team: TeamType) => {
     showPasswordDialog.value = true;
   }
 }
-
+const catTeam = (team: TeamType) => {
+  if (team.status === 0) {
+    router.push({
+      path:'/team/cat',
+      query:{
+        teamId : team.id,
+      }
+    });
+  } else {
+    showPasswordDialog.value = true;
+  }
+}
 const doJoinCancel = () => {
   joinTeamId.value = 0;
   password.value = '';

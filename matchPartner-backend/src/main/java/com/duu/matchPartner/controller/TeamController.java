@@ -188,5 +188,17 @@ public class TeamController {
         }
         return ResultUtils.success(teamList);
     }
+    @GetMapping("/cat")
+    public BaseResponse<List<User>> catTeam(Long teamId, HttpServletRequest request){
+        if (teamId<=0)
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser==null)
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        List<User> userList = teamService.catTeam(teamId);
+        if (userList==null)
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        return ResultUtils.success(userList);
+    }
 
 }

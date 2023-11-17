@@ -2,6 +2,7 @@ package com.duu.matchPartner.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.duu.matchPartner.model.domain.Team;
+import com.duu.matchPartner.model.domain.User;
 import com.duu.matchPartner.model.dto.TeamQuery;
 import com.duu.matchPartner.model.request.*;
 import com.duu.matchPartner.model.vo.TeamUserVO;
@@ -28,4 +29,6 @@ public interface TeamService extends IService<Team> {
     Boolean quitTeam(TeamQuitRequest teamQuitRequest,HttpServletRequest request);
 
     boolean deleteTeam(TeamDeleteRequest teamDeleteRequest, HttpServletRequest request);
+
+    List<User> catTeam(Long teamid);
 }
