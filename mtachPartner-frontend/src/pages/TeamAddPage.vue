@@ -22,13 +22,14 @@
             readonly
             name="datetimePicker"
             label="过期时间"
-            :placeholder="addTeamData.expireTime ?? '点击选择过期时间'"
+            :placeholder="addTeamData.expireTime ? timeFormatConvert(addTeamData.expireTime) : '点击选择过期时间'"
             @click="showPicker = true"
         />
         <van-popup v-model:show="showPicker" position="bottom">
           <van-datetime-picker
               v-model="addTeamData.expireTime"
               @confirm="showPicker = false"
+
               type="datetime"
               title="请选择过期时间"
               :min-date="minDate"
@@ -73,7 +74,7 @@ import {useRouter} from "vue-router";
 import {ref} from "vue";
 import myAxios from "../plugins/myAxios";
 import {Toast} from "vant";
-
+// moment = require('moment');
 const router = useRouter();
 // 展示日期选择器
 const showPicker = ref(false);
@@ -87,7 +88,7 @@ const initFormData = {
   "status": 0,
 }
 
-const minDate = new Date();
+
 
 // 需要用户填写的表单数据
 const addTeamData = ref({...initFormData})
@@ -96,6 +97,7 @@ const addTeamData = ref({...initFormData})
 const onSubmit = async () => {
   const postData = {
     ...addTeamData.value,
+    expireTime: timeFormatConvert(addTeamData.value.expireTime),
     status: Number(addTeamData.value.status)
   }
   // todo 前端参数校验
@@ -110,6 +112,21 @@ const onSubmit = async () => {
     Toast.success('添加失败');
   }
 }
+
+let prefixZero = (num = 0, n = 2)=> {
+  // 数字位数不够，数字前面补零
+  return (Array(n).join("0") + num).slice(-n);
+}
+const timeFormatConvert = (e) =>{
+  const Y = e.getFullYear(); // 年
+  const M = prefixZero(e.getMonth() + 1); // 月
+  const D = prefixZero(e.getDate()); // 日
+  const H = prefixZero(e.getHours()); // 时
+  const Mi = prefixZero(e.getMinutes()); // 分
+  const S = prefixZero(e.getSeconds()); // 秒
+  return Y + "-" + M + "-" + D + " " + H + ":" + Mi + ":" + S;
+}
+const minDate = new Date();
 </script>
 
 <style scoped>

@@ -170,6 +170,20 @@ const doDeleteTeam = async (id: number) => {
     Toast.fail('操作失败' + (res.description ? `，${res.description}` : ''));
   }
 }
+let prefixZero = (num = 0, n = 2)=> {
+  // 数字位数不够，数字前面补零
+  return (Array(n).join("0") + num).slice(-n);
+}
+const timeFormatConvert = (e) =>{
+  const Y = e.getFullYear(); // 年
+  const M = prefixZero(e.getMonth() + 1); // 月
+  const D = prefixZero(e.getDate()); // 日
+  const H = prefixZero(e.getHours()); // 时
+  const Mi = prefixZero(e.getMinutes()); // 分
+  const S = prefixZero(e.getSeconds()); // 秒
+  return Y + "-" + M + "-" + D + " " + H + ":" + Mi + ":" + S;
+}
+
 
 </script>
 
