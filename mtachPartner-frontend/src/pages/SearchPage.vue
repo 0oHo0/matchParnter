@@ -36,22 +36,51 @@ const router = useRouter()
 
 const searchText = ref('');
 
-const originTagList = [{
-  text: '性别',
-  children: [
-    {text: '男', id: '男'},
-    {text: '女', id: '女'},
-  ],
-},
+const originTagList = [
   {
-    text: '年级',
+    text: 'FPS',
     children: [
-      {text: '大一', id: '大一'},
-      {text: '大二', id: '大二'},
-      {text: '大3', id: '大3'},
-      {text: '大4', id: '大4'},
-      {text: '大5', id: '大5aaaaaaa'},
-      {text: '大6', id: '大6aaaaaaa'},
+      {text: 'CSGO', id: 'CSGO'},
+      {text: 'Valorant', id: 'Valorant'},
+      {text: 'CF', id: 'CF'},
+      {text: 'OW', id: 'OW'},
+      {text: 'CSOL', id: 'CSOL'},
+      {text: '逆战', id: '逆战'},
+    ],
+  },
+  {
+    text: 'MOBA',
+    children: [
+      {text: 'LOL', id: 'LOL'},
+      {text: 'DOTA', id: 'DOTA'},
+      {text: '王者荣耀', id: '王者荣耀'},
+    ],
+  },
+  {
+    text: '二次元',
+    children: [
+      {text: '原神', id: '原神'},
+      {text: '崩坏', id: '崩坏'},
+      {text: '明日方舟', id: '明日方舟'},
+      {text: '阴阳师', id: '阴阳师'},
+    ],
+  },
+  {
+    text: '生存类',
+    children: [
+      {text: 'PUBG', id: 'PUBG'},
+      {text: 'APEX', id: 'APEX'},
+      {text: '永劫无间', id: '永劫无间'},
+      {text: '和平精英', id: '和平精英'},
+    ],
+  },
+  {
+    text: '策略类',
+    children: [
+      {text: '云顶之奕', id: '云顶之奕'},
+      {text: '金铲铲', id: '金铲铲'},
+      {text: '三国杀', id: '三国杀'},
+      {text: '炉石传说', id: '炉石传说'},
     ],
   },
 ]

@@ -4,11 +4,16 @@
     <van-cell title="修改信息" is-link to="/user/update" />
     <van-cell title="我创建的队伍" is-link to="/user/team/create" />
     <van-cell title="我加入的队伍" is-link to="/user/team/join" />
+    <div style="margin: 16px;">
+      <van-button round block type="primary" @click="logout">
+        登出
+      </van-button>
+    </div>
   </template>
 </template>
 
 <script setup lang="ts">
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {onMounted, ref} from "vue";
 import myAxios from "../plugins/myAxios";
 import {Toast} from "vant";
@@ -27,13 +32,22 @@ import {getCurrentUser} from "../services/user";
 // }
 
 const user = ref();
-
+const route = useRoute();
 const router = useRouter();
 
 onMounted(async () => {
   user.value = await getCurrentUser();
 })
-
+const logout = async () => {
+  const res = await myAxios.post('/user/logout');
+  if (res.code === 0 && res.data) {
+    Toast.success('登出成功');
+    // 跳转到之前的页面
+    await router.replace('/user/login');
+  } else {
+    Toast.fail('登出失败');
+  }
+}
 const toEdit = (editKey: string, editName: string, currentValue: string) => {
   router.push({
     path: '/user/edit',

@@ -1,15 +1,18 @@
-package com.duu.reggie.controller;
+package com.duu.matchPartner.controller;
 
-import com.duu.reggie.common.R;
+
+import com.duu.matchPartner.common.BaseResponse;
+import com.duu.matchPartner.common.ResultUtils;
+import com.duu.matchPartner.model.domain.User;
+import com.duu.matchPartner.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,18 +25,20 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/common")
 @Slf4j
+//@CrossOrigin(origins = {"http://localhost:3000"}, allowCredentials = "true")
 public class CommonController {
 
-    @Value("${reggie.path}")
+    @Value("${picture-resource.path}")
     private String basePath;
-
+    @Resource
+    private UserService userService;
     /**
      * 文件上传
      * @param file
      * @return
      */
     @PostMapping("/upload")
-    public R<String> upload(MultipartFile file){
+    public BaseResponse<String> upload(MultipartFile file, HttpServletRequest request){
         //file是一个临时文件，需要转存到指定位置，否则本次请求完成后临时文件会删除
         log.info(file.toString());
 
@@ -51,14 +56,16 @@ public class CommonController {
             //目录不存在，需要创建
             dir.mkdirs();
         }
-
         try {
             //将临时文件转存到指定位置
             file.transferTo(new File(basePath + fileName));
+            User loginUser = userService.getLoginUser(request);
+            loginUser.setAvatarUrl(fileName);
+            userService.updateById(loginUser);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return R.success(fileName);
+        return ResultUtils.success(fileName);
     }
 
     /**
@@ -84,7 +91,6 @@ public class CommonController {
                 outputStream.write(bytes,0,len);
                 outputStream.flush();
             }
-
             //关闭资源
             outputStream.close();
             fileInputStream.close();

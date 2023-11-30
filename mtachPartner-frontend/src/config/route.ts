@@ -14,6 +14,7 @@ import TeamUpdatePage from "../pages/TeamUpdatePage.vue";
 import UserRegisterPage from "../pages/UserRegisterPage.vue";
 import UserPhoneLoginPage from "../pages/UserPhoneLoginPage.vue";
 import CatTeamPage  from "../pages/CatTeamPage.vue";
+import PictureUpload from "../pages/PictureUpload.vue";
 
 const routes = [
     { path: '/', component: Index },
@@ -31,6 +32,7 @@ const routes = [
     { path: '/user/update', title: '更新信息', component: UserUpdatePage },
     { path: '/user/team/join', title: '加入队伍', component: UserTeamJoinPage },
     { path: '/user/team/create', title: '创建队伍', component: UserTeamCreatePage },
+    { path: '/common/upload', title: '上传头像', component: PictureUpload },
 ]
 
 export default routes;

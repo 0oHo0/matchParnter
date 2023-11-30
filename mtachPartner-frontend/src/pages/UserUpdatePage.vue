@@ -2,8 +2,8 @@
   <template v-if="user">
     <van-cell title="昵称" is-link to="/user/edit" :value="user.username"  @click="toEdit('username', '昵称', user.username)"/>
     <van-cell title="账号" :value="user.userAccount"/>
-    <van-cell title="头像" is-link to="/user/edit">
-      <img style="height: 48px" :src="user.avatarUrl"/>
+    <van-cell title="头像" is-link to="/common/upload">
+      <img style="height: 48px" :src="`http://localhost:8100/api/image/${user.avatarUrl}`" alt="Image"/>
     </van-cell>
     <van-cell title="性别" is-link :value="user.gender==1? '男' : '女'" @click="toEdit('gender', '性别', user.gender)"/>
     <van-cell title="电话" is-link to="/user/edit" :value="user.phone" @click="toEdit('phone', '电话', user.phone)"/>
@@ -18,15 +18,17 @@ import {onMounted, ref} from "vue";
 import myAxios from "../plugins/myAxios";
 import {Toast} from "vant";
 import {getCurrentUser} from "../services/user";
+import * as http from "http";
 
 const user = ref();
-
+let res;
 onMounted(async () => {
   user.value = await getCurrentUser();
   // 创建 Date 对象
 const backendDate = new Date(user.value.createTime);
 // 获取日期部分
 user.value.createTime = backendDate.toLocaleDateString();
+
 })
 
 const router = useRouter();
